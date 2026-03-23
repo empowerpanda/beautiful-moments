@@ -1,5 +1,1009 @@
-# 美好時刻 · GlowBook
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowBook · 美業智慧預約系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:    #0f0f0f;
+            --bg2:   #1a1a1a;
+            --bg3:   #252525;
+            --gold:  #c9a96e;
+            --gold2: #e2c89a;
+            --rose:  #d4788a;
+            --text:  #f0ece4;
+            --dim:   #888;
+            --border:#333;
+            --r:     12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+        a { text-decoration: none; }
+        textarea { resize: vertical; }
 
-美業智慧預約系統 - Beauty Booking System
+        /* ── NAV ───────────────────────────────────────────── */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            background: rgba(15,15,15,.96); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            height: 64px; padding: 0 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo { font-size: 1.35rem; font-weight: 700; color: var(--gold); letter-spacing: 3px; cursor: pointer; }
+        .logo span { color: var(--rose); }
+        .nav-links { display: flex; gap: .4rem; }
+        .nav-btn {
+            padding: .45rem 1.1rem; border-radius: 20px; border: 1px solid transparent;
+            cursor: pointer; font-size: .88rem; background: none; color: var(--dim);
+            font-family: inherit; transition: all .2s;
+        }
+        .nav-btn:hover, .nav-btn.active { border-color: var(--gold); color: var(--gold); }
+        .nav-btn.cta { background: var(--gold); color: #000; font-weight: 600; border-color: var(--gold); }
+        .nav-btn.cta:hover { background: var(--gold2); }
 
-[Open App](https://empowerpanda.github.io/beautiful-moments/)
+        /* ── VIEWS ─────────────────────────────────────────── */
+        .view { display: none; padding-top: 64px; min-height: 100vh; }
+        .view.active { display: block; }
+
+        /* ── BUTTONS ───────────────────────────────────────── */
+        .btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .85rem 2.2rem; border-radius: 30px; border: none;
+            font-size: .95rem; font-weight: 600; cursor: pointer;
+            font-family: inherit; transition: all .25s; letter-spacing: .5px;
+        }
+        .btn-gold { background: var(--gold); color: #000; }
+        .btn-gold:hover { background: var(--gold2); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,169,110,.3); }
+        .btn-outline { background: transparent; color: var(--gold); border: 1px solid var(--gold); }
+        .btn-outline:hover { background: var(--gold); color: #000; }
+        .btn-ghost { background: transparent; color: var(--dim); border: 1px solid var(--border); }
+        .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-sm { padding: .45rem 1rem; font-size: .82rem; border-radius: 8px; font-weight: 500; }
+        .btn-danger { background: none; border: none; color: #dc5050; cursor: pointer; font-size: .85rem; font-family: inherit; }
+        .btn-edit { background: none; border: none; color: var(--gold); cursor: pointer; font-size: .85rem; font-family: inherit; }
+
+        /* ── LAYOUT HELPERS ────────────────────────────────── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .section { padding: 3.5rem 2rem; }
+        .section-alt { background: var(--bg2); }
+        .sec-title { text-align: center; font-size: 1.75rem; font-weight: 300; letter-spacing: 3px; margin-bottom: .4rem; }
+        .sec-sub { text-align: center; color: var(--dim); font-size: .9rem; margin-bottom: 2.5rem; }
+
+        /* ── HERO ──────────────────────────────────────────── */
+        .hero {
+            padding: 5.5rem 2rem 4rem;
+            text-align: center;
+            background: linear-gradient(160deg, #1c1508 0%, #12090f 50%, #0f0f0f 100%);
+        }
+        .hero-tag { display: inline-block; background: rgba(201,169,110,.12); color: var(--gold); border: 1px solid rgba(201,169,110,.3); border-radius: 20px; padding: .3rem 1rem; font-size: .8rem; letter-spacing: 2px; margin-bottom: 1.5rem; }
+        .hero h1 { font-size: 3rem; font-weight: 300; letter-spacing: 4px; line-height: 1.25; margin-bottom: 1rem; }
+        .hero h1 em { font-style: normal; color: var(--gold); }
+        .hero p { color: var(--dim); font-size: 1.05rem; margin-bottom: 2.5rem; }
+        .hero-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+        /* ── MAP SECTION ───────────────────────────────────── */
+        .map-grid { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; align-items: start; }
+        .map-frame { position: relative; border-radius: var(--r); overflow: hidden; border: 1px solid var(--border); height: 400px; }
+        .map-frame iframe { width: 100%; height: 100%; border: none; display: block; }
+        .map-hint { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(10,10,10,.88); padding: .5rem 1rem; font-size: .72rem; color: var(--dim); }
+        .store-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; display: flex; flex-direction: column; gap: .9rem; }
+        .store-name { font-size: 1.2rem; font-weight: 600; color: var(--gold); }
+        .store-row { display: flex; gap: .7rem; align-items: flex-start; color: var(--dim); font-size: .88rem; }
+        .store-row .ic { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+        .map-btns { display: flex; flex-direction: column; gap: .6rem; margin-top: .3rem; }
+        .map-link-btn {
+            display: flex; align-items: center; gap: .7rem;
+            padding: .7rem 1rem; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg3); color: var(--text); cursor: pointer; font-size: .88rem;
+            font-family: inherit; transition: all .2s;
+        }
+        .map-link-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .nearby-section { margin-top: 2rem; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; display: none; }
+        .nearby-item { display: flex; align-items: center; gap: 1rem; padding: .7rem 0; border-bottom: 1px solid var(--border); }
+        .nearby-item:last-child { border-bottom: none; }
+
+        /* ── CARDS GRID ────────────────────────────────────── */
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.5rem; }
+        .svc-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; cursor: pointer; transition: all .2s; text-align: center; }
+        .svc-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+        .svc-emoji { font-size: 2.4rem; margin-bottom: .6rem; }
+        .svc-name { font-weight: 600; margin-bottom: .2rem; }
+        .svc-price { color: var(--gold); font-size: .88rem; }
+        .svc-dur { color: var(--dim); font-size: .78rem; }
+
+        .stylists-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 1.5rem; }
+        .stl-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; text-align: center; cursor: pointer; transition: all .2s; }
+        .stl-card:hover { border-color: var(--rose); transform: translateY(-3px); }
+        .stl-avatar { width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--rose)); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin: 0 auto .7rem; }
+        .stl-name { font-weight: 600; }
+        .stl-spec { color: var(--dim); font-size: .82rem; margin-top: .2rem; }
+        .stl-rating { color: var(--gold); font-size: .82rem; margin-top: .25rem; }
+
+        /* ── BOOKING WIZARD ────────────────────────────────── */
+        .booking-wrap { max-width: 820px; margin: 0 auto; padding: 3rem 2rem; }
+        .wiz-title { text-align: center; font-size: 1.4rem; font-weight: 300; letter-spacing: 2px; margin-bottom: 2.5rem; }
+
+        /* Steps bar */
+        .steps-bar { display: flex; justify-content: center; align-items: flex-start; margin-bottom: 3rem; }
+        .step-wrap { display: flex; flex-direction: column; align-items: center; }
+        .step-circ { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: .82rem; font-weight: 600; color: var(--dim); transition: all .3s; background: var(--bg); }
+        .step-circ.active { border-color: var(--gold); color: var(--gold); }
+        .step-circ.done { background: var(--gold); border-color: var(--gold); color: #000; }
+        .step-lbl { font-size: .72rem; color: var(--dim); margin-top: .4rem; white-space: nowrap; }
+        .step-lbl.active { color: var(--gold); }
+        .step-line { width: 72px; height: 2px; background: var(--border); margin-top: 17px; transition: background .3s; }
+        .step-line.done { background: var(--gold); }
+
+        /* Step content */
+        .step-pane { display: none; }
+        .step-pane.active { display: block; }
+        .pane-title { font-size: 1.25rem; font-weight: 400; letter-spacing: 1px; margin-bottom: 1.5rem; text-align: center; color: var(--gold2); }
+
+        /* Select cards */
+        .sel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1rem; }
+        .sel-card { background: var(--bg2); border: 2px solid var(--border); border-radius: var(--r); padding: 1.2rem; cursor: pointer; transition: all .2s; text-align: center; }
+        .sel-card:hover { border-color: var(--gold); }
+        .sel-card.chosen { border-color: var(--gold); background: rgba(201,169,110,.08); }
+
+        /* Calendar */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; font-weight: 500; }
+        .cal-nav { background: none; border: 1px solid var(--border); color: var(--text); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 1.1rem; transition: all .2s; }
+        .cal-nav:hover { border-color: var(--gold); color: var(--gold); }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+        .cal-hd { text-align: center; font-size: .72rem; color: var(--dim); padding: .4rem 0; }
+        .cal-d { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: pointer; font-size: .88rem; border: 1px solid transparent; transition: all .2s; }
+        .cal-d:hover:not(.empty):not(.past) { border-color: var(--gold); color: var(--gold); }
+        .cal-d.today { color: var(--rose); font-weight: 700; }
+        .cal-d.chosen { background: var(--gold); color: #000; font-weight: 700; }
+        .cal-d.past { color: var(--border); cursor: not-allowed; }
+        .cal-d.empty { cursor: default; }
+
+        /* Time slots */
+        .slots-wrap { margin-top: 1.5rem; }
+        .slots-title { color: var(--dim); font-size: .88rem; margin-bottom: .75rem; }
+        .slots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: .5rem; }
+        .slot { padding: .45rem .5rem; border: 1px solid var(--border); border-radius: 8px; text-align: center; cursor: pointer; font-size: .82rem; transition: all .2s; }
+        .slot:hover:not(.taken) { border-color: var(--gold); color: var(--gold); }
+        .slot.chosen { background: var(--gold); border-color: var(--gold); color: #000; font-weight: 700; }
+        .slot.taken { color: var(--border); cursor: not-allowed; text-decoration: line-through; background: var(--bg3); }
+
+        /* Form */
+        .form-row { margin-bottom: 1.15rem; }
+        .form-lbl { display: block; font-size: .82rem; color: var(--dim); margin-bottom: .45rem; }
+        .form-inp {
+            width: 100%; padding: .72rem 1rem; background: var(--bg2); border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); font-size: .93rem; font-family: inherit; transition: border-color .2s;
+        }
+        .form-inp:focus { outline: none; border-color: var(--gold); }
+
+        /* Summary box */
+        .summary-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; margin-bottom: 1.5rem; }
+        .sum-row { display: flex; justify-content: space-between; padding: .48rem 0; border-bottom: 1px solid var(--border); font-size: .9rem; }
+        .sum-row:last-child { border-bottom: none; }
+        .sum-lbl { color: var(--dim); }
+        .sum-total { color: var(--gold); font-weight: 700; font-size: 1rem; }
+
+        /* Wiz nav */
+        .wiz-nav { display: flex; justify-content: space-between; margin-top: 2rem; }
+
+        /* ── ADMIN ─────────────────────────────────────────── */
+        .admin-wrap { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .admin-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 1.5rem; text-align: center; }
+        .stat-num { font-size: 2rem; font-weight: 700; color: var(--gold); }
+        .stat-lbl { font-size: .82rem; color: var(--dim); margin-top: .25rem; }
+        .tabs { display: flex; gap: .4rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+        .tab-btn { padding: .7rem 1.5rem; border: none; background: none; color: var(--dim); cursor: pointer; font-size: .92rem; font-family: inherit; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .2s; }
+        .tab-btn.active { color: var(--gold); border-bottom-color: var(--gold); }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+        .tbl { width: 100%; border-collapse: collapse; }
+        .tbl th { text-align: left; padding: .72rem 1rem; background: var(--bg3); color: var(--dim); font-size: .82rem; font-weight: 500; border-bottom: 1px solid var(--border); }
+        .tbl td { padding: .72rem 1rem; border-bottom: 1px solid var(--border); font-size: .88rem; }
+        .tbl tr:hover td { background: var(--bg2); }
+        .badge { display: inline-block; padding: .18rem .65rem; border-radius: 20px; font-size: .78rem; font-weight: 500; }
+        .b-ok { background: rgba(100,200,100,.12); color: #6dc46d; }
+        .b-wait { background: rgba(201,169,110,.12); color: var(--gold); }
+        .b-no { background: rgba(220,80,80,.12); color: #dc5050; }
+        .tb-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .filter-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+        .select-sm { background: var(--bg3); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: .45rem .7rem; font-size: .85rem; font-family: inherit; }
+
+        /* ── MODALS ────────────────────────────────────────── */
+        .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; align-items: center; justify-content: center; }
+        .overlay.open { display: flex; }
+        .modal-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 2rem; width: 90%; max-width: 480px; max-height: 80vh; overflow-y: auto; }
+        .modal-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem; }
+        .modal-foot { display: flex; justify-content: flex-end; gap: .75rem; margin-top: 1.5rem; }
+
+        /* Login */
+        .login-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r); padding: 2.5rem; width: 90%; max-width: 360px; text-align: center; }
+        .login-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+
+        /* Confirm popup */
+        .confirm-code { font-size: 1.5rem; color: var(--gold); letter-spacing: 5px; font-weight: 700; background: var(--bg3); padding: .9rem 1.5rem; border-radius: 8px; border: 1px solid var(--gold); display: inline-block; margin: .75rem 0 1.25rem; }
+
+        /* ── MISC ──────────────────────────────────────────── */
+        .hidden { display: none !important; }
+        .err-msg { color: #dc5050; font-size: .82rem; margin: .4rem 0; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2rem; }
+            .map-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .step-line { width: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ════ NAV ════════════════════════════════════════════════════ -->
+<nav>
+    <div class="logo" onclick="showView('home')">GLOW<span>BOOK</span></div>
+    <div class="nav-links">
+        <button class="nav-btn active" id="nb-home" onclick="showView('home')">首頁</button>
+        <button class="nav-btn" id="nb-booking" onclick="showView('booking')">立即預約</button>
+        <button class="nav-btn cta" onclick="openAdmin()">店家後台</button>
+    </div>
+</nav>
+
+<!-- ════ HOME ═══════════════════════════════════════════════════ -->
+<div id="view-home" class="view active">
+
+    <section class="hero">
+        <div class="hero-tag">✦ 智慧美業預約平台</div>
+        <h1>讓美麗<em>如期而至</em></h1>
+        <p>線上預約 · Google Maps 導航 · 即時確認</p>
+        <div class="hero-btns">
+            <button class="btn btn-gold" onclick="showView('booking')">立即預約 →</button>
+            <a href="#map-section" class="btn btn-outline">查看位置 &darr;</a>
+        </div>
+    </section>
+
+    <!-- Map -->
+    <div class="section" id="map-section">
+        <div class="container">
+            <h2 class="sec-title">找到我們</h2>
+            <p class="sec-sub">Google Maps 實時導航，輕鬆抵達</p>
+            <div class="map-grid">
+                <div class="map-frame">
+                    <!-- 💡 將下方 q= 參數換成您的實際店家地址即可顯示正確位置 -->
+                    <iframe
+                        id="map-iframe"
+                        src="https://maps.google.com/maps?q=台北市信義區松仁路100號&output=embed&hl=zh-TW&z=16"
+                        allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                    <div class="map-hint">💡 在店家設定中更新地址後，地圖將同步更新</div>
+                </div>
+                <div class="store-card">
+                    <div class="store-name">✨ <span id="h-store-name">GlowBook 旗艦店</span></div>
+                    <div class="store-row"><span class="ic">📍</span><span id="h-address">台北市信義區松仁路100號 B1</span></div>
+                    <div class="store-row"><span class="ic">🕐</span><span>週一至週日 10:00 – 21:00</span></div>
+                    <div class="store-row"><span class="ic">📞</span><span id="h-phone">02-2345-6789</span></div>
+                    <div class="store-row"><span class="ic">🚇</span><span>台北101站 3號出口步行5分</span></div>
+                    <div class="map-btns">
+                        <a id="nav-link" href="https://www.google.com/maps/dir/?api=1&destination=田北市信義區松仁路100號" target="_blank" class="map-link-btn">🗺️ Google Maps 導航前往</a>
+                        <button class="map-link-btn" onclick="showNearby()">🔍 搜尋附近美業店家</button>
+                        <button class="map-link-btn" onclick="showView('booking')">📅 立即線上預約</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nearby -->
+            <div class="nearby-section" id="nearby-section">
+                <h3 style="color:var(--gold); margin-bottom:1rem;">📍 附近美業店家</h3>
+                <div id="nearby-list"></div>
+                <p style="color:var(--dim); font-size:.78rem; margin-top:1rem;">※ 串接 Google Places API 後可顯示真實店家即時資料</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Services -->
+    <div class="section section-alt">
+        <div class="container">
+            <h2 class="sec-title">服務項目</h2>
+            <p class="sec-sub">專業美業服務，為您打造完美體驗</p>
+            <div class="cards-grid" id="home-services"></div>
+        </div>
+    </div>
+
+    <!-- Stylists -->
+    <div class="section">
+        <div class="container">
+            <h2 class="sec-title">技師團隊</h2>
+            <p class="sec-sub">專業認證，用心服務每一位客人</p>
+            <div class="stylists-grid" id="home-stylists"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ════ BOOKING ════════════════════════════════════════════════ -->
+<div id="view-booking" class="view">
+<div class="booking-wrap">
+    <h1 class="wiz-title" style="font-size:1.8rem; margin-bottom:.5rem;">線上預約</h1>
+    <p style="text-align:center; color:var(--dim); margin-bottom:2.5rem; font-size:.88rem;">4個步驟，輕鬆完成預約</p>
+
+    <!-- Steps bar -->
+    <div class="steps-bar">
+        <div class="step-wrap"><div class="step-circ active" id="sc1">1</div><div class="step-lbl active" id="sl1">選服務</div></div>
+        <div class="step-line" id="sln1"></div>
+        <div class="step-wrap"><div class="step-circ" id="sc2">2</div><div class="step-lbl" id="sl2">選技師</div></div>
+        <div class="step-line" id="sln2"></div>
+        <div class="step-wrap"><div class="step-circ" id="sc3">3</div><div class="step-lbl" id="sl3">選時段</div></div>
+        <div class="step-line" id="sln3"></div>
+        <div class="step-wrap"><div class="step-circ" id="sc4">4</div><div class="step-lbl" id="sl4">確認</div></div>
+    </div>
+
+    <!-- Step 1: Service -->
+    <div class="step-pane active" id="pane1">
+        <p class="pane-title">選擇服務項目</p>
+        <div class="sel-grid" id="bk-services"></div>
+        <div class="wiz-nav">
+            <div></div>
+            <button class="btn btn-gold" onclick="toStep(2)">下一步 →</button>
+        </div>
+    </div>
+
+    <!-- Step 2: Stylist -->
+    <div class="step-pane" id="pane2">
+        <p class="pane-title">選擇服務技師</p>
+        <div class="sel-grid" id="bk-stylists"></div>
+        <div class="wiz-nav">
+            <button class="btn btn-outline" onclick="toStep(1)">← 上一步</button>
+            <button class="btn btn-gold" onclick="toStep(3)">下一步 →</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Date & Time -->
+    <div class="step-pane" id="pane3">
+        <p class="pane-title">選擇日期與時段</p>
+        <div class="cal-header">
+            <button class="cal-nav" onclick="calMove(-1)">‹</button>
+            <span id="cal-label"></span>
+            <button class="cal-nav" onclick="calMove(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="slots-wrap hidden" id="slots-section">
+            <p class="slots-title">可預約時段（灰色為已被預約）</p>
+            <div class="slots-grid" id="slots-grid"></div>
+        </div>
+        <div class="wiz-nav">
+            <button class="btn btn-outline" onclick="toStep(2)">← 上一步</button>
+            <button class="btn btn-gold" onclick="toStep(4)">下一步 →</button>
+        </div>
+    </div>
+
+    <!-- Step 4: Confirm -->
+    <div class="step-pane" id="pane4">
+        <p class="pane-title">填寫資料與確認預約</p>
+        <div class="summary-box">
+            <div class="sum-row"><span class="sum-lbl">服務項目</span><span id="sm-svc">—</span></div>
+            <div class="sum-row"><span class="sum-lbl">服務技師</span><span id="sm-stl">—</span></div>
+            <div class="sum-row"><span class="sum-lbl">日期時間</span><span id="sm-dt">—</span></div>
+            <div class="sum-row"><span class="sum-lbl sum-total">費用</span><span class="sum-total" id="sm-price">—</span></div>
+        </div>
+        <div class="form-row"><label class="form-lbl">姓名 *</label><input type="text" class="form-inp" id="f-name" placeholder="請輸入您的姓名"></div>
+        <div class="form-row"><label class="form-lbl">手機號碼 *</label><input type="tel" class="form-inp" id="f-phone" placeholder="09XX-XXX-XXX"></div>
+        <div class="form-row"><label class="form-lbl">Email（選填）</label><input type="email" class="form-inp" id="f-email" placeholder="your@email.com"></div>
+        <div class="form-row"><label class="form-lbl">備註（選填）</label><textarea class="form-inp" id="f-note" rows="3" placeholder="特殊需求、過敏史等..."></textarea></div>
+        <div class="wiz-nav">
+            <button class="btn btn-outline" onclick="toStep(3)">← 上一步</button>
+            <button class="btn btn-gold" onclick="submitBooking()">✓ 確認預約</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ════ ADMIN ═══════════════════════════════════════════════════ -->
+<div id="view-admin" class="view">
+<div class="admin-wrap">
+    <div class="admin-hd">
+        <h1 style="font-size:1.4rem; color:var(--gold);">🏪 店家管理後台</h1>
+        <button class="btn btn-ghost btn-sm" onclick="showView('home')">← 返回前台</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" id="st-today">0</div><div class="stat-lbl">今日預約</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-total">0</div><div class="stat-lbl">總預約數</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-revenue">$0</div><div class="stat-lbl">本月營收</div></div>
+        <div class="stat-box"><div class="stat-num" id="st-clients">0</div><div class="stat-lbl">不重複客戶</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('appts')">📋 預約管理</button>
+        <button class="tab-btn" onclick="switchTab('svcs')">💅 服務項目</button>
+        <button class="tab-btn" onclick="switchTab('stls')">👩 技師管理</button>
+        <button class="tab-btn" onclick="switchTab('cfg')">⚙️ 店家設定</button>
+    </div>
+
+    <!-- Appointments Tab -->
+    <div class="tab-pane active" id="tp-appts">
+        <div class="tb-header">
+            <div class="filter-row">
+                <select class="select-sm" id="f-status" onchange="renderAppts()">
+                    <option value="">全部狀態</option>
+                    <option value="confirmed">已確認</option>
+                    <option value="pending">待確認</option>
+                    <option value="cancelled">已取消</option>
+                </select>
+                <input type="date" class="select-sm" id="f-date" onchange="renderAppts()">
+                <input type="text" class="select-sm" id="f-search" placeholder="搜尋姓名/手機" oninput="renderAppts()" style="min-width:160px;">
+            </div>
+            <span id="appt-count" style="color:var(--dim); font-size:.85rem;"></span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="tbl">
+                <thead><tr>
+                    <th>編號</th><th>客戶</th><th>手機</th><th>服務</th><th>技師</th><th>日期時間</th><th>費用</th><th>狀態</th><th>操作</th>
+                </tr></thead>
+                <tbody id="appts-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Services Tab -->
+    <div class="tab-pane" id="tp-svcs">
+        <div class="tb-header"><div></div><button class="btn btn-gold btn-sm" onclick="openSvcModal()">+ 新增服務</button></div>
+        <table class="tbl">
+            <thead><tr><th>圖示</th><th>名稱</th><th>費用</th><th>時長</th><th>描述</th><th>操作</th></tr></thead>
+            <tbody id="svcs-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Stylists Tab -->
+    <div class="tab-pane" id="tp-stls">
+        <div class="tb-header"><div></div><button class="btn btn-gold btn-sm" onclick="openStlModal()">+ 新增技師</button></div>
+        <table class="tbl">
+            <thead><tr><th>頭像</th><th>姓名</th><th>專長</th><th>評分</th><th>狀態</th><th>操作</th></tr></thead>
+            <tbody id="stls-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Settings Tab -->
+    <div class="tab-pane" id="tp-cfg">
+        <div style="max-width:500px;">
+            <h3 style="color:var(--gold); margin-bottom:1.5rem;">店家基本資訊</h3>
+            <div class="form-row"><label class="form-lbl">店家名稱</label><input type="text" class="form-inp" id="cfg-name"></div>
+            <div class="form-row"><label class="form-lbl">地址</label><input type="text" class="form-inp" id="cfg-addr" oninput="updateMapPreview()"></div>
+            <div class="form-row"><label class="form-lbl">電話</label><input type="text" class="form-inp" id="cfg-phone"></div>
+            <div class="form-row"><label class="form-lbl">Google Maps 嵌入 src（選填）</label><textarea class="form-inp" id="cfg-map" rows="3" placeholder="貼上 Google Maps → 分享 → 嵌入地圖 的 src 網址..."></textarea></div>
+            <div class="form-row"><label class="form-lbl">Google Maps 導航連結</label><input type="text" class="form-inp" id="cfg-nav" placeholder="https://www.google.com/maps/dir/?api=1&destination=..."></div>
+            <div class="form-row"><label class="form-lbl">變更後台密碼（留空則不變更）</label><input type="password" class="form-inp" id="cfg-pw" placeholder="新密碼"></div>
+            <button class="btn btn-gold" onclick="saveSettings()">💾 儲存設定</button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ════ MODALS ══════════════════════════════════════════════════ -->
+
+<!-- Admin Login -->
+<div class="overlay" id="ov-login">
+    <div class="login-box">
+        <div class="login-icon">🔐</div>
+        <h2 style="margin-bottom:.4rem;">店家後台登入</h2>
+        <p style="color:var(--dim); font-size:.85rem; margin-bottom:1.5rem;">預設密碼：admin123</p>
+        <div class="form-row"><input type="password" class="form-inp" id="login-pw" placeholder="請輸入管理密碼" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <p class="err-msg hidden" id="login-err">密碼錯誤，請再試一次</p>
+        <button class="btn btn-gold" onclick="doLogin()" style="width:100%; margin-top:.5rem;">登入</button>
+        <button class="btn btn-ghost" onclick="closeOv('ov-login')" style="width:100%; margin-top:.75rem; border-radius:30px;">取消</button>
+    </div>
+</div>
+
+<!-- Service Modal -->
+<div class="overlay" id="ov-svc">
+    <div class="modal-box">
+        <h3 class="modal-title">服務項目設定</h3>
+        <input type="hidden" id="svc-id">
+        <div class="form-row"><label class="form-lbl">Emoji 圖示</label><input type="text" class="form-inp" id="svc-emoji" placeholder="💅"></div>
+        <div class="form-row"><label class="form-lbl">服務名稱 *</label><input type="text" class="form-inp" id="svc-name" placeholder="美甲基礎保養"></div>
+        <div class="form-row"><label class="form-lbl">費用 (NT$)</label><input type="number" class="form-inp" id="svc-price" placeholder="800"></div>
+        <div class="form-row"><label class="form-lbl">時長（分鐘）</label><input type="number" class="form-inp" id="svc-dur" placeholder="60"></div>
+        <div class="form-row"><label class="form-lbl">服務描述</label><input type="text" class="form-inp" id="svc-desc" placeholder="深層清潔、補水修護..."></div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost btn-sm" onclick="closeOv('ov-svc')">取消</button>
+            <button class="btn btn-gold btn-sm" onclick="saveSvc()">儲存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Stylist Modal -->
+<div class="overlay" id="ov-stl">
+    <div class="modal-box">
+        <h3 class="modal-title">技師資料設定</h3>
+        <input type="hidden" id="stl-id">
+        <div class="form-row"><label class="form-lbl">頭像 Emoji</label><input type="text" class="form-inp" id="stl-emoji" placeholder="👫"></div>
+        <div class="form-row"><label class="form-lbl">技師姓名 *</label><input type="text" class="form-inp" id="stl-name" placeholder="陳美麗"></div>
+        <div class="form-row"><label class="form-lbl">專長</label><input type="text" class="form-inp" id="stl-spec" placeholder="美甲、美睫"></div>
+        <div class="form-row"><label class="form-lbl">評分 (0-5)</label><input type="number" class="form-inp" id="stl-rating" placeholder="4.9" min="0" max="5" step="0.1"></div>
+        <div class="modal-foot">
+            <button class="btn btn-ghost btn-sm" onclick="closeOv('ov-stl')">取消</button>
+            <button class="btn btn-gold btn-sm" onclick="saveStl()">儲存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Confirm Popup -->
+<div class="overlay" id="ov-confirm">
+    <div class="modal-box" style="text-align:center;">
+        <div style="font-size:3.5rem; margin-bottom:.75rem;">🎉</div>
+        <h2 style="margin-bottom:.4rem;">預約成功！</h2>
+        <p style="color:var(--dim); font-size:.88rem;">請記下您的預約編號</p>
+        <div class="confirm-code" id="conf-code"></div>
+        <div id="conf-detail"></div>
+        <div style="display:flex; flex-direction:column; gap:.75rem; margin-top:1.5rem;">
+            <button class="btn btn-gold" onclick="addToCalendar()" style="justify-content:center;">📅 加入 Google 日曆</button>
+            <button class="btn btn-outline" onclick="closeOv('ov-confirm'); showView('home')" style="justify-content:center;">返回首頁</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════ SCRIPT ══════════════════════════════════════════════════ -->
+<script>
+// ── DEFAULTS ────────────────────────────────────────────────────
+const DEF_SVCS = [
+    { id:1, emoji:'💆', name:'臉部深層護理', price:1200, dur:60, desc:'深層清潔、補水修護療程' },
+    { id:2, emoji:'💅', name:'美甲基礎保養', price:600,  dur:45, desc:'修甲、拋光、單色上色' },
+    { id:3, emoji:'✨', name:'美甲凝膠設計', price:900,  dur:75, desc:'凝膠延甲、客製圖案設計' },
+    { id:4, emoji:'👁️', name:'美睫嫁接',     price:1500, dur:90, desc:'單根嫁接、濃密自然款' },
+    { id:5, emoji:'💇', name:'頭皮養護療程', price:800,  dur:60, desc:'頭皮深層清潔、養護精華' },
+    { id:6, emoji:'🌸', name:'全身芳療SPA',  price:2500, dur:120,desc:'精油按摩、舒壓放鬆療程' },
+];
+const DEF_STLS = [
+    { id:1, emoji:'👩',   name:'陳美麗', spec:'美甲、美睫', rating:4.9, active:true },
+    { id:2, emoji:'👩‍🦱', name:'林雅芳', spec:'臉部護理、SPA', rating:4.8, active:true },
+    { id:3, emoji:'👩‍🦰', name:'王馨儀', spec:'美睫、美甲彩繪', rating:4.7, active:true },
+    { id:4, emoji:'🧖',   name:'李雨晨', spec:'全身SPA、精油護膚', rating:4.9, active:true },
+];
+const DEF_CFG = {
+    name:'GlowBook 旗艦店', addr:'台北市信義區松仁路100號 B1',
+    phone:'02-2345-6789',
+    mapUrl:'https://maps.google.com/maps?q=台北市信義區松仁路100號&output=embed&hl=zh-TW&z=16',
+    navUrl:'https://www.google.com/maps/dir/?api=1&destination=台北市信義區松仁路100號',
+    pw:'admin123',
+};
+const TIMES = [
+    '10:00','10:30','11:00','11:30','12:00','12:30',
+    '13:00','13:30','14:00','14:30','15:00','15:30',
+    '16:00','16:30','17:00','17:30','18:00','18:30',
+    '19:00','19:30','20:00','20:30',
+];
+const NEARBY_MOCK = [
+    { name:'美顏坊 Nail Studio', type:'美甲·美睫', addr:'松仁路85號', rating:4.6, dist:'200m' },
+    { name:'Beauty Lab 護膚研究室', type:'護膚·SPA', addr:'信義路五段8號', rating:4.5, dist:'350m' },
+    { name:'指上談兵', type:'美甲·彩繪', addr:'松高路12號', rating:4.8, dist:'420m' },
+    { name:'蝶戀花美容工坊', type:'臉部護理·美容', addr:'基隆路一段123號', rating:4.4, dist:'580m' },
+];
+
+// ── STATE ────────────────────────────────────────────────────────
+let svcs  = JSON.parse(localStorage.getItem('gb_svcs'))  || DEF_SVCS;
+let stls  = JSON.parse(localStorage.getItem('gb_stls'))  || DEF_STLS;
+let appts = JSON.parse(localStorage.getItem('gb_appts')) || [];
+let cfg   = JSON.parse(localStorage.getItem('gb_cfg'))   || DEF_CFG;
+let adminOk = false;
+
+let bk = { svcId:null, stlId:null, date:null, time:null };
+let curStep = 1;
+let calDate = new Date();
+
+// ── PERSIST ──────────────────────────────────────────────────────
+function persist() {
+    localStorage.setItem('gb_svcs',  JSON.stringify(svcs));
+    localStorage.setItem('gb_stls',  JSON.stringify(stls));
+    localStorage.setItem('gb_appts', JSON.stringify(appts));
+    localStorage.setItem('gb_cfg',   JSON.stringify(cfg));
+}
+
+// ── VIEWS ────────────────────────────────────────────────────────
+function showView(v) {
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+    document.getElementById('view-' + v).classList.add('active');
+    ['home','booking'].forEach(n => document.getElementById('nb-'+n)?.classList.toggle('active', n===v));
+    if (v === 'home')    renderHome();
+    if (v === 'booking') initBooking();
+    if (v === 'admin')   renderAdmin();
+    window.scrollTo(0, 0);
+}
+function openAdmin() {
+    adminOk ? showView('admin') : openOv('ov-login');
+}
+function doLogin() {
+    const pw = document.getElementById('login-pw').value;
+    if (pw === cfg.pw) {
+        adminOk = true;
+        closeOv('ov-login');
+        document.getElementById('login-pw').value = '';
+        document.getElementById('login-err').classList.add('hidden');
+        showView('admin');
+    } else {
+        document.getElementById('login-err').classList.remove('hidden');
+    }
+}
+function openOv(id)  { document.getElementById(id).classList.add('open'); }
+function closeOv(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── HOME ─────────────────────────────────────────────────────────
+function renderHome() {
+    document.getElementById('h-store-name').textContent = cfg.name;
+    document.getElementById('h-address').textContent    = cfg.addr;
+    document.getElementById('h-phone').textContent      = cfg.phone;
+    document.getElementById('nav-link').href            = cfg.navUrl;
+
+    // Services
+    document.getElementById('home-services').innerHTML = svcs.map(s => `
+        <div class="svc-card" onclick="showView('booking')">
+            <div class="svc-emoji">${s.emoji}</div>
+            <div class="svc-name">${s.name}</div>
+            <div class="svc-price">NT$ ${s.price.toLocaleString()}</div>
+            <div class="svc-dur">⏱ ${s.dur} 分鐘 · ${s.desc}</div>
+        </div>`).join('');
+
+    // Stylists
+    document.getElementById('home-stylists').innerHTML = stls.filter(s=>s.active).map(s => `
+        <div class="stl-card">
+            <div class="stl-avatar">${s.emoji}</div>
+            <div class="stl-name">${s.name}</div>
+            <div class="stl-spec">${s.spec}</div>
+            <div class="stl-rating">★ ${s.rating}</div>
+        </div>`).join('');
+}
+
+function showNearby() {
+    const sec = document.getElementById('nearby-section');
+    document.getElementById('nearby-list').innerHTML = NEARBY_MOCK.map(n => `
+        <div class="nearby-item">
+            <div style="font-size:2rem;">💅</div>
+            <div style="flex:1">
+                <div style="font-weight:600;">${n.name}</div>
+                <div style="color:var(--dim); font-size:.82rem;">${n.type} · ${n.addr}</div>
+                <div style="color:var(--gold); font-size:.82rem;">★ ${n.rating}</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:.82rem; color:var(--dim);">${n.dist}</div>
+                <a href="https://maps.google.com/?q=${encodeURIComponent(n.name)}" target="_blank"
+                   style="font-size:.8rem; color:var(--gold);">導航 →</a>
+            </div>
+        </div>`).join('');
+    sec.style.display = 'block';
+    sec.scrollIntoView({ behavior:'smooth' });
+}
+
+// ── BOOKING WIZARD ────────────────────────────────────────────────
+function initBooking() {
+    bk = { svcId:null, stlId:null, date:null, time:null };
+    calDate = new Date();
+    goStep(1);
+    renderBkSvcs();
+    renderBkStls();
+    renderCal();
+}
+
+function renderBkSvcs() {
+    document.getElementById('bk-services').innerHTML = svcs.map(s => `
+        <div class="sel-card ${bk.svcId===s.id?'chosen':''}" id="bsvc${s.id}" onclick="pickSvc(${s.id})">
+            <div style="font-size:2rem; margin-bottom:.4rem;">${s.emoji}</div>
+            <div style="font-weight:600; margin-bottom:.2rem;">${s.name}</div>
+            <div style="color:var(--gold); font-size:.88rem;">NT$ ${s.price.toLocaleString()}</div>
+            <div style="color:var(--dim); font-size:.78rem; margin-top:.2rem;">⏱ ${s.dur} 分</div>
+        </div>`).join('');
+}
+function pickSvc(id) {
+    bk.svcId = id;
+    document.querySelectorAll('#bk-services .sel-card').forEach(c => c.classList.remove('chosen'));
+    document.getElementById('bsvc'+id).classList.add('chosen');
+}
+
+function renderBkStls() {
+    document.getElementById('bk-stylists').innerHTML = stls.filter(s=>s.active).map(s => `
+        <div class="sel-card ${bk.stlId===s.id?'chosen':''}" id="bstl${s.id}" onclick="pickStl(${s.id})">
+            <div style="font-size:2rem; margin-bottom:.4rem;">${s.emoji}</div>
+            <div style="font-weight:600; margin-bottom:.2rem;">${s.name}</div>
+            <div style="color:var(--dim); font-size:.82rem;">${s.spec}</div>
+            <div style="color:var(--gold); font-size:.82rem; margin-top:.2rem;">★ ${s.rating}</div>
+        </div>`).join('');
+}
+function pickStl(id) {
+    bk.stlId = id;
+    document.querySelectorAll('#bk-stylists .sel-card').forEach(c => c.classList.remove('chosen'));
+    document.getElementById('bstl'+id).classList.add('chosen');
+    if (bk.date) renderSlots(bk.date); // refresh slots for new stylist
+}
+
+// Calendar
+function renderCal() {
+    const y = calDate.getFullYear(), m = calDate.getMonth();
+    document.getElementById('cal-label').textContent = `${y} 年 ${m+1} 月`;
+    const first = new Date(y, m, 1).getDay();
+    const days  = new Date(y, m+1, 0).getDate();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const hdrs  = ['日','一','二','三','四','五','六'];
+    let html = hdrs.map(h=>`<div class="cal-hd">${h}</div>`).join('');
+    for (let i=0; i<first; i++) html += `<div class="cal-d empty"></div>`;
+    for (let d=1; d<=days; d++) {
+        const dt = new Date(y, m, d);
+        const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const past = dt < today, isToday = dt.getTime()===today.getTime(), chosen = bk.date===ds;
+        html += `<div class="cal-d ${past?'past':''} ${isToday?'today':''} ${chosen?'chosen':''}"
+                     onclick="${past?'':`pickDate('${ds}')`}">${d}</div>`;
+    }
+    document.getElementById('cal-grid').innerHTML = html;
+}
+function calMove(d) { calDate.setMonth(calDate.getMonth()+d); renderCal(); }
+function pickDate(ds) {
+    bk.date = ds; bk.time = null;
+    renderCal(); renderSlots(ds);
+    document.getElementById('slots-section').classList.remove('hidden');
+}
+function renderSlots(ds) {
+    const taken = appts.filter(a => a.date===ds && a.stlId===bk.stlId && a.status!=='cancelled').map(a=>a.time);
+    document.getElementById('slots-grid').innerHTML = TIMES.map(t => {
+        const isTaken = taken.includes(t), chosen = bk.time===t && !isTaken;
+        return `<div class="slot ${isTaken?'taken':''} ${chosen?'chosen':''}"
+                     onclick="${isTaken?'':`pickTime('${t}')`}">${t}</div>`;
+    }).join('');
+}
+function pickTime(t) { bk.time = t; renderSlots(bk.date); }
+
+function toStep(n) {
+    if (n===2 && !bk.svcId) return alert('請先選擇服務項目');
+    if (n===3 && !bk.stlId) return alert('請先選擇技師');
+    if (n===4) {
+        if (!bk.date) return alert('請選擇預約日期');
+        if (!bk.time) return alert('請選擇預約時段');
+        fillSummary();
+    }
+    goStep(n);
+}
+function goStep(n) {
+    curStep = n;
+    document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById('pane'+n).classList.add('active');
+    [1,2,3,4].forEach(i => {
+        const c = document.getElementById('sc'+i), l = document.getElementById('sl'+i);
+        c.classList.remove('active','done'); l.classList.remove('active');
+        if (i<n)  { c.classList.add('done'); c.textContent='✓'; }
+        else if (i===n) { c.classList.add('active'); c.textContent=i; l.classList.add('active'); }
+        else { c.textContent=i; }
+        if (i<4) document.getElementById('sln'+i).classList.toggle('done', i<n);
+    });
+}
+function fillSummary() {
+    const s = svcs.find(x=>x.id===bk.svcId), t = stls.find(x=>x.id===bk.stlId);
+    document.getElementById('sm-svc').textContent   = `${s?.emoji} ${s?.name}`;
+    document.getElementById('sm-stl').textContent   = `${t?.emoji} ${t?.name}`;
+    document.getElementById('sm-dt').textContent    = `${bk.date} ${bk.time}`;
+    document.getElementById('sm-price').textContent = `NT$ ${s?.price.toLocaleString()}`;
+}
+
+function submitBooking() {
+    const name = document.getElementById('f-name').value.trim();
+    const phone = document.getElementById('f-phone').value.trim();
+    if (!name)  return alert('請輸入姓名');
+    if (!phone) return alert('請輸入手機號碼');
+    const s = svcs.find(x=>x.id===bk.svcId), t = stls.find(x=>x.id===bk.stlId);
+    const code = 'GB' + Date.now().toString(36).toUpperCase().slice(-6);
+    const appt = {
+        id:code, name, phone,
+        email: document.getElementById('f-email').value.trim(),
+        note:  document.getElementById('f-note').value.trim(),
+        svcId:bk.svcId, svcName:s.name, price:s.price, dur:s.dur,
+        stlId:bk.stlId, stlName:t.name,
+        date:bk.date, time:bk.time,
+        status:'confirmed', at: new Date().toISOString(),
+    };
+    appts.push(appt); persist();
+
+    document.getElementById('conf-code').textContent = code;
+    document.getElementById('conf-detail').innerHTML = `
+        <div class="summary-box" style="text-align:left;">
+            <div class="sum-row"><span class="sum-lbl">姓名</span><span>${name}</span></div>
+            <div class="sum-row"><span class="sum-lbl">服務</span><span>${s.emoji} ${s.name}</span></div>
+            <div class="sum-row"><span class="sum-lbl">技師</span><span>${t.emoji} ${t.name}</span></div>
+            <div class="sum-row"><span class="sum-lbl">時間</span><span>${bk.date} ${bk.time}</span></div>
+            <div class="sum-row"><span class="sum-lbl sum-total">費用</span><span class="sum-total">NT$ ${s.price.toLocaleString()}</span></div>
+        </div>`;
+    openOv('ov-confirm');
+
+    // reset form
+    ['f-name','f-phone','f-email','f-note'].forEach(id => document.getElementById(id).value='');
+}
+
+function addToCalendar() {
+    const a = appts[appts.length-1]; if (!a) return;
+    const start = a.date.replace(/-/g,'') + 'T' + a.time.replace(':','') + '00';
+    const end   = new Date(`${a.date}T${a.time}:00`);
+    end.setMinutes(end.getMinutes() + (a.dur||60));
+    const endStr = end.toISOString().replace(/[-:]/g,'').split('.')[0];
+    const url = `https://calendar.google.com/calendar/render?action=TEMPLATE`
+        + `&text=${encodeURIComponent(a.svcName + ' @ ' + cfg.name)}`
+        + `&dates=${start}/${endStr}`
+        + `&details=${encodeURIComponent('預約編號：' + a.id + '\n技師：' + a.stlName)}`
+        + `&location=${encodeURIComponent(cfg.addr)}`;
+    window.open(url, '_blank');
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────
+function renderAdmin() {
+    // Stats
+    const today = new Date().toISOString().split('T')[0];
+    const mon   = today.slice(0,7);
+    document.getElementById('st-today').textContent   = appts.filter(a=>a.date===today&&a.status!=='cancelled').length;
+    document.getElementById('st-total').textContent   = appts.filter(a=>a.status!=='cancelled').length;
+    document.getElementById('st-revenue').textContent = 'NT$' + appts.filter(a=>a.date?.startsWith(mon)&&a.status==='confirmed').reduce((s,a)=>s+a.price,0).toLocaleString();
+    document.getElementById('st-clients').textContent = new Set(appts.map(a=>a.phone)).size;
+    renderAppts(); renderSvcs(); renderStls(); loadCfg();
+}
+function switchTab(k) {
+    document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['appts','svcs','stls','cfg'][i]===k));
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tp-'+k).classList.add('active');
+}
+
+function renderAppts() {
+    const fStatus = document.getElementById('f-status').value;
+    const fDate   = document.getElementById('f-date').value;
+    const fSearch = document.getElementById('f-search').value.toLowerCase();
+    let list = [...appts];
+    if (fStatus) list = list.filter(a=>a.status===fStatus);
+    if (fDate)   list = list.filter(a=>a.date===fDate);
+    if (fSearch) list = list.filter(a=>a.name?.toLowerCase().includes(fSearch)||a.phone?.includes(fSearch));
+    list.sort((a,b)=>b.at?.localeCompare(a.at||'')||0);
+    document.getElementById('appt-count').textContent = `共 ${list.length} 筆`;
+    const statMap = { confirmed:'已確認', pending:'待確認', cancelled:'已取消' };
+    const clsMap  = { confirmed:'b-ok', pending:'b-wait', cancelled:'b-no' };
+    document.getElementById('appts-body').innerHTML = list.map(a => `
+        <tr>
+            <td style="color:var(--gold); font-weight:500;">${a.id}</td>
+            <td>${a.name}</td><td>${a.phone}</td>
+            <td>${a.svcName}</td><td>${a.stlName}</td>
+            <td>${a.date} ${a.time}</td>
+            <td>NT$ ${a.price?.toLocaleString()}</td>
+            <td><span class="badge ${clsMap[a.status]||''}">${statMap[a.status]||a.status}</span></td>
+            <td>
+                <select onchange="setApptStatus('${a.id}',this.value)" class="select-sm">
+                    <option value="confirmed" ${a.status==='confirmed'?'selected':''}>已確認</option>
+                    <option value="pending"   ${a.status==='pending'  ?'selected':''}>待確認</option>
+                    <option value="cancelled" ${a.status==='cancelled'?'selected':''}>已取消</option>
+                </select>
+            </td>
+        </tr>`).join('') || `<tr><td colspan="9" style="text-align:center; color:var(--dim); padding:2rem;">尚無預約記錄</td></tr>`;
+}
+function setApptStatus(id, s) {
+    const a = appts.find(x=>x.id===id);
+    if (a) { a.status=s; persist(); renderAdmin(); }
+}
+
+function renderSvcs() {
+    document.getElementById('svcs-body').innerHTML = svcs.map(s => `
+        <tr>
+            <td style="font-size:1.4rem;">${s.emoji}</td>
+            <td style="font-weight:500;">${s.name}</td>
+            <td>NT$ ${s.price?.toLocaleString()}</td>
+            <td>${s.dur} 分</td>
+            <td style="color:var(--dim);">${s.desc}</td>
+            <td>
+                <button class="btn-edit" onclick="openSvcModal(${s.id})">編輯</button>
+                <button class="btn-danger" onclick="delSvc(${s.id})">刪除</button>
+            </td>
+        </tr>`).join('');
+}
+function openSvcModal(id) {
+    const s = id ? svcs.find(x=>x.id===id) : null;
+    document.getElementById('svc-id').value    = id||'';
+    document.getElementById('svc-emoji').value = s?.emoji||'💅';
+    document.getElementById('svc-name').value  = s?.name||'';
+    document.getElementById('svc-price').value = s?.price||'';
+    document.getElementById('svc-dur').value   = s?.dur||'';
+    document.getElementById('svc-desc').value  = s?.desc||'';
+    openOv('ov-svc');
+}
+function saveSvc() {
+    const id   = document.getElementById('svc-id').value;
+    const data = {
+        emoji: document.getElementById('svc-emoji').value||'💅',
+        name:  document.getElementById('svc-name').value.trim(),
+        price: parseInt(document.getElementById('svc-price').value)||0,
+        dur:   parseInt(document.getElementById('svc-dur').value)||60,
+        desc:  document.getElementById('svc-desc').value.trim(),
+    };
+    if (!data.name) return alert('請輸入服務名稱');
+    if (id) { const i=svcs.findIndex(x=>x.id==id); svcs[i]={...svcs[i],...data}; }
+    else { data.id=Date.now(); svcs.push(data); }
+    persist(); closeOv('ov-svc'); renderSvcs();
+}
+function delSvc(id) {
+    if (!confirm('確定刪除此服務項目？')) return;
+    svcs=svcs.filter(x=>x.id!==id); persist(); renderSvcs();
+}
+
+function renderStls() {
+    document.getElementById('stls-body').innerHTML = stls.map(s => `
+        <tr>
+            <td style="font-size:1.4rem;">${s.emoji}</td>
+            <td style="font-weight:500;">${s.name}</td>
+            <td>${s.spec}</td>
+            <td style="color:var(--gold);">★ ${s.rating}</td>
+            <td><span class="badge ${s.active?'b-ok':'b-no'}">${s.active?'在職':'休假'}</span></td>
+            <td>
+                <button class="btn-edit" onclick="openStlModal(${s.id})">編輯</button>
+                <button class="btn-danger" onclick="toggleStl(${s.id})">${s.active?'暫停':'啟用'}</button>
+            </td>
+        </tr>`).join('');
+}
+function openStlModal(id) {
+    const s = id ? stls.find(x=>x.id===id) : null;
+    document.getElementById('stl-id').value     = id||'';
+    document.getElementById('stl-emoji').value  = s?.emoji||'👩';
+    document.getElementById('stl-name').value   = s?.name||'';
+    document.getElementById('stl-spec').value   = s?.spec||'';
+    document.getElementById('stl-rating').value = s?.rating||'5.0';
+    openOv('ov-stl');
+}
+function saveStl() {
+    const id   = document.getElementById('stl-id').value;
+    const data = {
+        emoji:  document.getElementById('stl-emoji').value||'👩',
+        name:   document.getElementById('stl-name').value.trim(),
+        spec:   document.getElementById('stl-spec').value.trim(),
+        rating: parseFloat(document.getElementById('stl-rating').value)||5.0,
+        active: true,
+    };
+    if (!data.name) return alert('請輸入技師姓名');
+    if (id) { const i=stls.findIndex(x=>x.id==id); stls[i]={...stls[i],...data}; }
+    else { data.id=Date.now(); stls.push(data); }
+    persist(); closeOv('ov-stl'); renderStls();
+}
+function toggleStl(id) {
+    const s=stls.find(x=>x.id===id); if(s){s.active=!s.active; persist(); renderStls();}
+}
+
+function loadCfg() {
+    document.getElementById('cfg-name').value  = cfg.name;
+    document.getElementById('cfg-addr').value  = cfg.addr;
+    document.getElementById('cfg-phone').value = cfg.phone;
+    document.getElementById('cfg-map').value   = cfg.mapUrl;
+    document.getElementById('cfg-nav').value   = cfg.navUrl;
+}
+function updateMapPreview() {
+    const addr = document.getElementById('cfg-addr').value;
+    if (addr) document.getElementById('map-iframe').src =
+        `https://maps.google.com/maps?q=${encodeURIComponent(addr)}&output=embed&hl=zh-TW&z=16`;
+}
+function saveSettings() {
+    cfg.name   = document.getElementById('cfg-name').value;
+    cfg.addr   = document.getElementById('cfg-addr').value;
+    cfg.phone  = document.getElementById('cfg-phone').value;
+    cfg.mapUrl = document.getElementById('cfg-map').value || `https://maps.google.com/maps?q=${encodeURIComponent(cfg.addr)}&output=embed&hl=zh-TW&z=16`;
+    cfg.navUrl = document.getElementById('cfg-nav').value || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(cfg.addr)}`;
+    const pw = document.getElementById('cfg-pw').value;
+    if (pw) { cfg.pw=pw; document.getElementById('cfg-pw').value=''; }
+    persist();
+    // Update live
+    document.getElementById('map-iframe').src = cfg.mapUrl;
+    document.getElementById('nav-link').href  = cfg.navUrl;
+    alert('✅ 設定已儲存！');
+}
+
+// ── SEED DEMO DATA ────────────────────────────────────────────────
+if (appts.length === 0) {
+    const d0 = new Date().toISOString().split('T')[0];
+    const d1 = new Date(Date.now()+86400000).toISOString().split('T')[0];
+    const d2 = new Date(Date.now()+172800000).toISOString().split('T')[0];
+    appts = [
+        { id:'GB001', name:'王小明', phone:'0912-345-678', email:'', note:'第一次來，對精油過敏', svcId:1, svcName:'臉部深層護理', price:1200, dur:60, stlId:2, stlName:'林雅芳', date:d0, time:'10:00', status:'confirmed', at: new Date().toISOString() },
+        { id:'GB002', name:'陳美美', phone:'0933-456-789', email:'mei@example.com', note:'', svcId:2, svcName:'美甲基礎保養', price:600, dur:45, stlId:1, stlName:'陳美麗', date:d0, time:'14:30', status:'confirmed', at: new Date().toISOString() },
+        { id:'GB003', name:'林小芬', phone:'0988-765-432', email:'', note:'請保留A區停車位', svcId:4, svcName:'美睫嫁接', price:1500, dur:90, stlId:3, stlName:'王馨儀', date:d1, time:'11:00', status:'pending', at: new Date().toISOString() },
+        { id:'GB004', name:'張雅婷', phone:'0966-111-222', email:'ting@gmail.com', note:'', svcId:6, svcName:'全身芳療SPA', price:2500, dur:120, stlId:4, stlName:'李雨晨', date:d2, time:'14:00', status:'confirmed', at: new Date().toISOString() },
+    ];
+    persist();
+}
+
+// Init
+renderHome();
+</script>
+</body>
+</html>
